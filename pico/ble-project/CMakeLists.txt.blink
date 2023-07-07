@@ -13,8 +13,6 @@ pico_sdk_init()
 # Note: The space between the name and the file is CRITICAL; can cause a blank unable to find file error
 #add_executable(test test.c)
 add_executable(blink blink.c)
-#add_executable(blink-serial blink-serial.c)
-#add_executable(gatt_browser gatt_browser.c)
 
 #pico_enable_stdio_usb(test 1)
 #pico_enable_stdio_uart(test 1)
@@ -22,17 +20,8 @@ add_executable(blink blink.c)
 pico_enable_stdio_usb(blink 1)
 pico_enable_stdio_uart(blink 1)
 
-#pico_enable_stdio_usb(blink-serial 1)
-#pico_enable_stdio_uart(blink-serial 0)
-
 #pico_add_extra_outputs(test)
 pico_add_extra_outputs(blink)
-#pico_add_extra_outputs(blink-serial)
-
-# Added directories for allowing build with lwipopts.h
-#target_include_directories(blink-serial PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
-# Note: The above is what allows the make of the blink-serial.c script
 
 #target_link_libraries(test pico_stdlib)
 target_link_libraries(blink pico_stdlib pico_cyw43_arch_none)
-#target_link_libraries(blink-serial pico_cyw43_arch_lwip_threadsafe_background pico_stdlib)
