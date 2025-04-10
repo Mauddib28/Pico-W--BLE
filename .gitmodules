@@ -1,0 +1,3 @@
+[submodule "EmbeddedSystems/Pico_ePaper_Code"]
+	path = EmbeddedSystems/Pico_ePaper_Code
+	url = https://github.com/waveshareteam/Pico_ePaper_Code
