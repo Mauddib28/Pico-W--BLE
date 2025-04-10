@@ -1,0 +1,82 @@
+cmake_minimum_required(VERSION 3.13)
+
+include(pico_sdk_import.cmake)
+
+project(test_project C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(PROJECT_NAME gatt_browser)
+# Setting the device to Pico-W
+set(PICO_BOARD pico_w)
+
+pico_sdk_init()
+
+# Note: The space between the name and the file is CRITICAL; can cause a blank unable to find file error
+#add_executable(test test.c)
+#add_executable(blink blink.c)
+#add_executable(blink-serial blink-serial.c)
+#add_executable(gatt_browser gatt_browser.c)
+#add_executable(blinkprint blinkprint.c)
+#add_executable(${PROJECT_NAME} led_counter.c)
+#add_executable(${PROJECT_NAME} btstack_raspi_template.c)
+add_executable(${PROJECT_NAME} gatt_browser.c)
+
+#pico_enable_stdio_usb(test 1)
+#pico_enable_stdio_uart(test 1)
+
+# Builds fine without issues
+#pico_enable_stdio_usb(blink 1)
+#pico_enable_stdio_uart(blink 1)
+# Build attempt allowing USB print captures; and no UART
+#pico_enable_stdio_usb(blink 1)
+#pico_enable_stdio_uart(blink 0)
+
+#pico_enable_stdio_usb(blink-serial 1)
+#pico_enable_stdio_uart(blink-serial 0)
+
+# enable usb output, disable uart output
+#pico_enable_stdio_usb(blinkprint 1)
+#pico_enable_stdio_uart(blinkprint 0)
+
+#pico_enable_stdio_usb(gatt_browser 1)
+#pico_enable_stdio_uart(gatt_browser 0)
+
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
+
+#pico_add_extra_outputs(test)
+#pico_add_extra_outputs(blink)
+#pico_add_extra_outputs(blink-serial)
+
+# create map/bin/hex/uf2 file etc.
+#pico_add_extra_outputs(blinkprint)
+
+#pico_add_extra_outputs(gatt_browser)
+pico_add_extra_outputs(${PROJECT_NAME})
+
+# Added directories for allowing build with lwipopts.h
+#target_include_directories(blink-serial PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
+# Note: The above is what allows the make of the blink-serial.c script
+#target_include_directories(blinkprint PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
+
+#target_include_directories(gatt_browser PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
+#target_include_directories(gatt_browser PRIVATE ${CMAKE_SOURCE_DIR} )
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
+
+#target_link_libraries(test pico_stdlib)
+#target_link_libraries(blink pico_stdlib pico_cyw43_arch_none)
+#target_link_libraries(blink-serial pico_cyw43_arch_lwip_threadsafe_background pico_stdlib)
+
+# pull in common dependencies
+#target_link_libraries(blinkprint pico_stdlib pico_cyw43_arch_none)
+
+## Create the necessary .h files from .gatt files
+#pico_btstack_make_gatt_header(${PROJECT_NAME} PRIVATE gatt_browser.gatt)
+pico_btstack_make_gatt_header(${PROJECT_NAME} PRIVATE /home/user/Documents/Raspi/pico/pico-sdk/lib/btstack/example/gatt_browser.gatt)
+
+
+#target_link_libraries(gatt_browser pico_stdlib pico_cyw43_arch_none pico_btstack_ble pico_btstack_cyw43)
+target_link_libraries(${PROJECT_NAME} pico_stdlib pico_cyw43_arch_none pico_btstack_ble pico_btstack_cyw43 pico_cyw43_driver)
+
+
+

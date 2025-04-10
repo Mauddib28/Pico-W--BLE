@@ -1,0 +1,7 @@
+export PICO_SDK_PATH=/home/user/Documents/Raspi/pico/pico-sdk
+wget https://raw.githubusercontent.com/raspberrypi/pico-sdk/master/external/pico_sdk_import.cmake
+mkdir build
+cd build
+cmake ..
+cmake -DPICO_BOARD=pico_w ..
+make hello_world
