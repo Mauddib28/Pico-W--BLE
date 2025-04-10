@@ -1,0 +1,1 @@
+Ensure that the libraries used are representative of the expected embedded hardware being used (i.e. RealTek BW-16, Pico-WH)
