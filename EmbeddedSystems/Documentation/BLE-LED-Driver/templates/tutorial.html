@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLE RGB LED Controller Tutorial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="bg-primary text-white py-4">
+        <div class="container">
+            <h1>BLE RGB LED Controller</h1>
+            <p class="lead mb-0">Step-by-Step Tutorial</p>
+        </div>
+    </header>
+
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tutorial</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Building a BLE RGB LED Controller</h2>
+                <p class="card-text">This tutorial guides you through setting up and using the BLE RGB LED Controller project for the Raspberry Pi Pico W.</p>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">1</span> Hardware Setup</h3>
+                    <p>Gather the required components:</p>
+                    <ul>
+                        <li>Raspberry Pi Pico W</li>
+                        <li>RGB LED (common cathode preferred)</li>
+                        <li>3× 220Ω resistors</li>
+                        <li>Jumper wires</li>
+                        <li>Breadboard</li>
+                        <li>Micro USB cable</li>
+                    </ul>
+                    
+                    <p>Wire the RGB LED to the Pico W as follows:</p>
+                    <ul>
+                        <li>Red LED pin → 220Ω resistor → GPIO 17 (GP17)</li>
+                        <li>Green LED pin → 220Ω resistor → GPIO 22 (GP22)</li>
+                        <li>Blue LED pin → 220Ω resistor → GPIO 16 (GP16)</li>
+                        <li>Common cathode → GND</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> If using a common anode RGB LED, connect the common pin to 3.3V instead of GND, and modify the code to invert the PWM signal.
+                    </div>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">2</span> Software Installation</h3>
+                    <p>Prepare your Pico W with MicroPython:</p>
+                    <ol>
+                        <li>Download the latest MicroPython firmware for Pico W from the <a href="https://micropython.org/download/rp2-pico-w/" target="_blank">official website</a></li>
+                        <li>Hold the BOOTSEL button on the Pico W while connecting it to your computer</li>
+                        <li>Drag and drop the .uf2 firmware file to the RPI-RP2 drive that appears</li>
+                        <li>Wait for the Pico W to reboot</li>
+                    </ol>
+                    
+                    <p>Install necessary tools on your computer:</p>
+                    <ol>
+                        <li>Install <a href="https://thonny.org/" target="_blank">Thonny IDE</a> or another MicroPython-compatible editor</li>
+                        <li>Connect to your Pico W using the editor</li>
+                    </ol>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">3</span> Upload the Code</h3>
+                    <p>Transfer the BLE RGB LED Controller code to your Pico W:</p>
+                    <ol>
+                        <li>Download the main.py file from this project</li>
+                        <li>Open the file in your MicroPython editor</li>
+                        <li>Save it to your Pico W as "main.py" (this ensures it runs automatically on startup)</li>
+                    </ol>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Important:</strong> The code requires the Bluetooth capabilities of the Pico W. It will not work on a standard Pico.
+                    </div>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">4</span> Test the Setup</h3>
+                    <p>Verify your BLE RGB LED Controller is working correctly:</p>
+                    <ol>
+                        <li>Power up the Pico W (via USB or external power)</li>
+                        <li>The LED should initially turn off or show a default color</li>
+                        <li>The Pico W will begin advertising as "BLE-LED"</li>
+                    </ol>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">5</span> Connect and Control</h3>
+                    <p>Use a BLE client to connect to and control your RGB LED:</p>
+                    
+                    <h4>Option 1: Smartphone App</h4>
+                    <ol>
+                        <li>Install a BLE scanner/controller app on your smartphone:
+                            <ul>
+                                <li>Android: "nRF Connect" or "BLE Scanner"</li>
+                                <li>iOS: "LightBlue" or "BLE Scanner"</li>
+                            </ul>
+                        </li>
+                        <li>Scan for BLE devices and connect to "BLE-LED"</li>
+                        <li>Find the LED Service (UUID: 0xA100)</li>
+                        <li>Locate the RGB Characteristic (UUID: 0xA101)</li>
+                        <li>Write RGB values to change the LED color:
+                            <ul>
+                                <li>Format: Three bytes representing R, G, B values (0-255)</li>
+                                <li>Example: [255, 0, 0] for pure red</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h4>Option 2: Computer with BLE Support</h4>
+                    <ol>
+                        <li>Use a BLE development tool like "BLE Terminal" or write custom code</li>
+                        <li>Connect to the "BLE-LED" device</li>
+                        <li>Write to the RGB Characteristic (UUID: 0xA101)</li>
+                    </ol>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">6</span> Experiment and Modify</h3>
+                    <p>Once your basic setup is working, you can experiment with:</p>
+                    <ul>
+                        <li>Creating color fades and transitions</li>
+                        <li>Building a custom app to control your LED</li>
+                        <li>Adding additional LEDs (modify the code accordingly)</li>
+                        <li>Implementing the "Status" characteristic to monitor device state</li>
+                        <li>Creating animations or reactive lighting patterns</li>
+                    </ul>
+                </div>
+                
+                <div class="step-container">
+                    <h3><span class="step-number">7</span> Troubleshooting</h3>
+                    <p>If you encounter issues:</p>
+                    <ul>
+                        <li><strong>LED doesn't light up:</strong> Check your wiring, resistor values, and LED type (common anode vs. cathode)</li>
+                        <li><strong>Cannot find BLE-LED device:</strong> Make sure your Pico W has the correct firmware and the code is running</li>
+                        <li><strong>Colors appear incorrect:</strong> Verify the RGB values you're sending and check if you need to adjust the LED type in code</li>
+                        <li><strong>Connection drops:</strong> Ensure your Pico W has adequate power and is within range of your BLE client</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p>Pico W BLE RGB LED Controller Documentation - Built for learning embedded BLE development</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

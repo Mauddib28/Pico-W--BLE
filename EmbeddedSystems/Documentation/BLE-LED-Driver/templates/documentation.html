@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLE RGB LED Controller Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="bg-primary text-white py-4">
+        <div class="container">
+            <h1>BLE RGB LED Controller</h1>
+            <p class="lead mb-0">Pico W Bluetooth Low Energy LED Control Documentation</p>
+        </div>
+    </header>
+
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Documentation</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Contents</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#overview" class="list-group-item list-group-item-action">Overview</a>
+                            <a href="#hardware" class="list-group-item list-group-item-action">Hardware Setup</a>
+                            <a href="#ble-services" class="list-group-item list-group-item-action">BLE Services</a>
+                            <a href="#state-machine" class="list-group-item list-group-item-action">BLE State Machine</a>
+                            <a href="#led-control" class="list-group-item list-group-item-action">LED Control Mechanism</a>
+                            <a href="#client-interaction" class="list-group-item list-group-item-action">Client Interaction</a>
+                            <a href="#todo-items" class="list-group-item list-group-item-action">ToDo Items</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+                        <section id="overview" class="doc-section">
+                            <h2>Overview</h2>
+                            <p>The BLE RGB LED Controller is a MicroPython application for the Raspberry Pi Pico W that demonstrates how to create a Bluetooth Low Energy (BLE) GATT server to control RGB LEDs. This documentation provides detailed information about how the implementation works.</p>
+                            
+                            <p>The controller provides:</p>
+                            <ul>
+                                <li>A BLE GATT server with a custom LED service</li>
+                                <li>RGB color control through a dedicated characteristic</li>
+                                <li>Status notifications</li>
+                                <li>Visual connection status indication</li>
+                            </ul>
+                        </section>
+                        
+                        <section id="hardware" class="doc-section">
+                            <h2>Hardware Setup</h2>
+                            <p>The BLE RGB LED Controller uses the following hardware components:</p>
+                            
+                            <h4>Required Components:</h4>
+                            <ul>
+                                <li>Raspberry Pi Pico W</li>
+                                <li>RGB LED (common cathode or common anode)</li>
+                                <li>3× 220Ω resistors</li>
+                                <li>Jumper wires</li>
+                                <li>Breadboard</li>
+                            </ul>
+                            
+                            <h4>Pin Connections:</h4>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Color</th>
+                                            <th>Pico W Pin</th>
+                                            <th>PWM Capability</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Red</td>
+                                            <td>GPIO 17 (GP17)</td>
+                                            <td>Yes</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Green</td>
+                                            <td>GPIO 22 (GP22)</td>
+                                            <td>Yes</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Blue</td>
+                                            <td>GPIO 16 (GP16)</td>
+                                            <td>Yes</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <p>The onboard LED (labeled "LED" on the Pico W) is used as a connection status indicator, blinking when a BLE client is connected.</p>
+                        </section>
+                        
+                        <section id="ble-services" class="doc-section">
+                            <h2>BLE Services Structure</h2>
+                            <p>The BLE RGB LED Controller implements a custom GATT service with characteristics that allow clients to control the RGB LED.</p>
+                            
+                            <div class="gatt-service mb-4">
+                                <h4>LED Service (UUID: 0xA100)</h4>
+                                <p>This service provides functionalities to control the RGB LED and monitor its status.</p>
+                                
+                                <div class="gatt-characteristic">
+                                    <h5>RGB Characteristic (UUID: 0xA101)</h5>
+                                    <div>
+                                        <span class="gatt-property">Read</span>
+                                        <span class="gatt-property">Write</span>
+                                    </div>
+                                    <p>This characteristic allows clients to read and write RGB values to control the LED color. Values should be in the range 0-255 for each color channel.</p>
+                                    <p>Format: 3-byte value (RGB) or text format ("R\tG\tB\n")</p>
+                                </div>
+                                
+                                <div class="gatt-characteristic">
+                                    <h5>Status Characteristic (UUID: 0xA102)</h5>
+                                    <div>
+                                        <span class="gatt-property">Read</span>
+                                        <span class="gatt-property">Notify</span>
+                                    </div>
+                                    <p>This characteristic provides status information about the LED device. It supports notifications to inform clients about changes in the device state.</p>
+                                    <p>Format: UTF-8 encoded string</p>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section id="state-machine" class="doc-section">
+                            <h2>BLE State Machine</h2>
+                            <p>The BLE RGB LED Controller follows a state machine pattern for managing Bluetooth connections and interactions:</p>
+                            
+                            <ol>
+                                <li><strong>Initialization:</strong> The BLE stack is activated, PWM pins are configured, and GATT services are registered.</li>
+                                <li><strong>Advertising:</strong> The device begins advertising its LED service, waiting for central devices to connect.</li>
+                                <li><strong>Connection:</strong> When a central device connects, the status changes to "Connected," and the onboard LED starts blinking.</li>
+                                <li><strong>Operation:</strong> The device processes RGB values received from the client and updates the LED accordingly.</li>
+                                <li><strong>Disconnection:</strong> When the central device disconnects, the device returns to the advertising state.</li>
+                            </ol>
+                            
+                            <h4>Event Handling</h4>
+                            <p>The application uses an event-driven approach with the following BLE events:</p>
+                            <ul>
+                                <li><code>_IRQ_CENTRAL_CONNECT</code> (1): Triggered when a central device connects</li>
+                                <li><code>_IRQ_CENTRAL_DISCONNECT</code> (2): Triggered when a central device disconnects</li>
+                                <li><code>_IRQ_GATTS_WRITE</code> (3): Triggered when a client writes to a characteristic</li>
+                            </ul>
+                            
+                            <h4>Timing Considerations</h4>
+                            <p>The main loop includes a 500ms sleep (<code>time.sleep_ms(500)</code>) to control the blinking rate of the status LED and prevent excessive CPU usage. This timing is important for:</p>
+                            <ul>
+                                <li>Providing a visible indication of connection status</li>
+                                <li>Allowing the BLE stack time to process events</li>
+                                <li>Reducing power consumption by not constantly checking for events</li>
+                            </ul>
+                        </section>
+                        
+                        <section id="led-control" class="doc-section">
+                            <h2>LED Control Mechanism</h2>
+                            <p>The RGB LED is controlled using Pulse Width Modulation (PWM) to achieve variable brightness levels for each color channel:</p>
+                            
+                            <h4>PWM Configuration</h4>
+                            <div class="code-block">
+                                <pre>self._red = PWM(Pin(17))    # GP17
+self._green = PWM(Pin(22))  # GP22
+self._blue = PWM(Pin(16))   # GP16
+                                
+# Set PWM frequency
+pwm_freq = 1000
+self._red.freq(pwm_freq)
+self._green.freq(pwm_freq)
+self._blue.freq(pwm_freq)</pre>
+                            </div>
+                            
+                            <h4>Brightness Control</h4>
+                            <p>The system converts 8-bit color values (0-255) to 16-bit PWM duty cycles (0-65025):</p>
+                            <div class="code-block">
+                                <pre>def _set_lights(self, pin, brightness):
+    """Convert 0-255 brightness to duty cycle."""
+    realBrightness = int(int(brightness) * (float(65025 / 255.0)))
+    pin.duty_u16(realBrightness)</pre>
+                            </div>
+                            
+                            <h4>Color Setting Process</h4>
+                            <ol>
+                                <li>Client writes RGB values to the RGB characteristic</li>
+                                <li>The <code>_irq</code> handler detects the write and reads the characteristic's value</li>
+                                <li>The handler parses the RGB values and calls <code>_set_rgb</code></li>
+                                <li><code>_set_rgb</code> sets the PWM duty cycle for each LED pin</li>
+                                <li>The status characteristic is updated with the new RGB values</li>
+                            </ol>
+                        </section>
+                        
+                        <section id="client-interaction" class="doc-section">
+                            <h2>Client Interaction</h2>
+                            <p>Clients interact with the BLE RGB LED Controller through the following steps:</p>
+                            
+                            <ol>
+                                <li><strong>Discovery:</strong> The client discovers the device by its name "BLE-LED" and the advertised service UUID (0xA100).</li>
+                                <li><strong>Connection:</strong> The client establishes a connection with the peripheral.</li>
+                                <li><strong>Service Discovery:</strong> The client discovers the LED service and its characteristics.</li>
+                                <li><strong>Color Control:</strong> The client writes RGB values to the RGB characteristic (0xA101) to control the LED color.</li>
+                                <li><strong>Status Monitoring:</strong> The client can read or subscribe to notifications from the Status characteristic (0xA102).</li>
+                            </ol>
+                            
+                            <h4>Data Formats</h4>
+                            <p>The controller accepts two formats for RGB data:</p>
+                            <ul>
+                                <li><strong>Binary Format:</strong> 3-byte value where each byte represents R, G, and B values (0-255).</li>
+                                <li><strong>Text Format:</strong> Tab-separated values with a newline character (e.g., "255\t128\t0\n").</li>
+                            </ul>
+                        </section>
+                        
+                        <section id="todo-items" class="doc-section">
+                            <h2>ToDo Items and Improvements</h2>
+                            <p>The current implementation has the following areas for improvement:</p>
+                            
+                            <h4>Identified Issues:</h4>
+                            <ol>
+                                <li>The <code>parse_rgb()</code> method is defined but never called - it should be integrated into the <code>_irq</code> function.</li>
+                                <li>Input validation is minimal - the code should validate RGB values are within the 0-255 range.</li>
+                                <li>Error handling for malformed data could be improved to prevent exceptions.</li>
+                                <li>Debug print statements in the <code>_irq</code> handler should be conditional on the debug flag.</li>
+                            </ol>
+                            
+                            <h4>Possible Enhancements:</h4>
+                            <ul>
+                                <li>Add support for LED animations and patterns</li>
+                                <li>Implement color temperature control</li>
+                                <li>Add persistent storage for last used color</li>
+                                <li>Implement power saving modes</li>
+                                <li>Add security features like bonding and encryption</li>
+                            </ul>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p>Pico W BLE RGB LED Controller Documentation - Built for learning embedded BLE development</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap & Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

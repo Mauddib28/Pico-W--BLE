@@ -1,0 +1,209 @@
+/* Main Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* RGB LED Simulator */
+.led-simulator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.led-display {
+    width: 200px;
+    height: 200px;
+    background-color: #000;
+    border: 10px solid #333;
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.led-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* RGB Sliders */
+.rgb-slider {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.slider-red::-webkit-slider-thumb {
+    background: #ff0000;
+}
+
+.slider-green::-webkit-slider-thumb {
+    background: #00ff00;
+}
+
+.slider-blue::-webkit-slider-thumb {
+    background: #0000ff;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.slider-label {
+    min-width: 60px;
+}
+
+.slider-value {
+    min-width: 40px;
+    text-align: right;
+    margin-left: 10px;
+}
+
+/* Color Presets */
+.color-preset {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 5px;
+    cursor: pointer;
+    display: inline-block;
+    border: 2px solid #ddd;
+    transition: transform 0.2s;
+}
+
+.color-preset:hover {
+    transform: scale(1.1);
+    border-color: #aaa;
+}
+
+/* BLE States Animation */
+.ble-state-diagram {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Refresh Animation */
+.led-display.updating {
+    animation: updateFlash 0.5s;
+}
+
+@keyframes updateFlash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Code Highlighting */
+.code-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f6f8fa;
+    overflow: auto;
+    max-height: 500px;
+}
+
+pre {
+    padding: 15px;
+    margin: 0;
+}
+
+code {
+    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Diagram Styles */
+#servicesDiagram, #flowDiagram {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.mermaid {
+    text-align: center;
+}
+
+/* Tutorial Styles */
+.step-container {
+    padding: 20px;
+    border-left: 3px solid #007bff;
+    margin-bottom: 30px;
+}
+
+.step-number {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Documentation Styles */
+.doc-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.doc-section:last-child {
+    border-bottom: none;
+}
+
+.code-block {
+    background-color: #f6f8fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    font-family: monospace;
+}
+
+/* GATT Service Visualization */
+.gatt-service {
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.gatt-characteristic {
+    border: 1px solid #28a745;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #f8fff8;
+}
+
+.gatt-property {
+    display: inline-block;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 2px;
+    font-size: 0.8rem;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .led-display {
+        width: 150px;
+        height: 150px;
+    }
+} 
