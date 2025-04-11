@@ -1,0 +1,35 @@
+------------------ Understanding the Pico W ePaper/E-Ink Code ----------------
+
+@EmbeddedSystems - Examine the code within this space to udnerstand all the development effort that has been made to get the PicoW working with the Pico ePaper Code (which can be found in the Pico_ePaper_Code subdirectory within the EmbedcdedSystems directory referenced).   Please pay particular  focus on the @ble_eink_display_demo__basic_bitch.py script and dissect it's contents to fully understand the known good example provided.
+
+Once you have reviewed and understood the example E-Ink Display demo code, please provide a summary of the device's capabilities and functionality.  Specifically I want to know the following:
+1) What are the services, characteristics, and descriptors being provided by the PicoW's GATT server?  Maintain the heirarchy of the Services, Characteristics, and Descriptors along with a human understandable description of how the aforementioned properties are presented by the running device.
+2) What is the purpose of the E-Ink display and how does it react to interaction with the PicoW device?  What is the information that is displayed on the E-Ink display?  What are the limitations in using that display?  Please also provide a dedtailed description of how the E-Ink/ePaper display is being used, how the writing/images are refreshed, as well as an ASCii art representation of the formatting used to display information on the screen.  With the ASCii art, show the different types of screens that are displayed along with a flow chart showing how they change based on device operation/functionality.
+3) How does the Pico W device operate in relation to the Bluetooth State Machine (e.g. how are the services started? What events lead to changes in the operation of the Bluetooth device? How does the interaction of a client or other external device cause the Pico W device to perform different actions?; i.e. callback functions)?  Discuss the importance of timing for sleeps to ensure that the embedded device has "settled" before performing other actions/functions during its operation.
+
+Once complete, search through the source code for @ble_eink_display_demo__basic_bitch.py any ToDo items that have not been addressed within the code.  Then take these ToDo items and create a plan for how to address these additional items, what tasks/code/functionality would be required, and the best method by which these additional capabilties can be incorporated into the existing code.
+
+-----/ Helper + Documentation for E-Ink Code /---------
+
+Amazing! Thank you!
+
+Now please take all the information that you compiled and put it all together and an interactive website that can be run locally as an interactive experience to better understand the @ble_eink_display_demo__basic_bitch.py code, allow unexperienced users to become familiar wityh the concepts and underlying technologies, and ensure that the web server can be run locally.  Please ensure that the end solution is as concise and easy to run as possible, especially for technology novice individuals. It is acceptable to bundle the website/webserver as a docker containers, so long as a simple run script is provided.
+
+Lastly, create and store all of the information, scripts, and supplementary material into a "Documentation" subdirectory within the EmbeddedSystems directory.  Ensure that all your generated files are contained withn the aforementioned Documentation subdirectory.
+
+--------------- Fixing the Web Page -----------------
+
+@run_local.py - The current issues with the web server are:
+1) Mermaid library not loaded. Cannot render diagram.
+2) The E-Ink display does not work anymore, by which I mean that no information is displayed within the test display.
+3) The BLE Service Structure still does not render in a human readable format
+
+Please fix, test, verify, and validate solutions to the above problems.  Create, test, teardown, edit, and re-generate the website as many times as required for you to validate that the web server and its libraries/functions are working as intended to operate.  Check all log necessary to confirm a working solution and only summarize the work once you have conclusively determined that the web server is fully function and displaying as desired.  Until that point is reach, continue to test, research, test, debug, and troubleshoot the solutions
+
+
+==============================================================================
+
+------------------ Understanding the Pico W Audio Controller Code ----------------
+
+----/ BLE LED Controller /----
+

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Ink Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .display-simulator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .eink-display {
+            width: 250px;
+            height: 122px;
+            background-color: #f0f0f0;
+            border: 10px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .eink-content {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-wrap: break-word;
+        }
+        
+        .refreshing {
+            animation: refresh 1s;
+        }
+        
+        @keyframes refresh {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .debug-log {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>E-Ink Display Test</h1>
+        
+        <div class="control-panel">
+            <div>
+                <label for="displayText">Display Text:</label>
+                <input type="text" id="displayText" style="width: 300px;" placeholder="Type text to display">
+            </div>
+            <div>
+                <button id="btnDisplay">Update Display</button>
+                <button id="btnClear">Clear Display</button>
+                <button id="btnReset">Reset</button>
+            </div>
+        </div>
+        
+        <div class="display-simulator">
+            <div class="eink-display" id="einkDisplay">
+                <div class="eink-content" id="einkContent">E-Ink Test</div>
+            </div>
+        </div>
+        
+        <h2>Debug Information</h2>
+        <div class="debug-log" id="debugLog"></div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            debugLog.innerHTML += logMessage + '<br>';
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, initializing...');
+            
+            const displayText = document.getElementById('displayText');
+            const einkContent = document.getElementById('einkContent');
+            const einkDisplay = document.getElementById('einkDisplay');
+            
+            log('Elements found: ' + 
+                (displayText ? 'displayText ✓ ' : 'displayText ✗ ') + 
+                (einkContent ? 'einkContent ✓ ' : 'einkContent ✗ ') + 
+                (einkDisplay ? 'einkDisplay ✓' : 'einkDisplay ✗'));
+            
+            log('Initial einkContent state:');
+            log('- content: ' + einkContent.innerText);
+            log('- display: ' + window.getComputedStyle(einkContent).display);
+            log('- color: ' + window.getComputedStyle(einkContent).color);
+            log('- fontSize: ' + window.getComputedStyle(einkContent).fontSize);
+            
+            document.getElementById('btnDisplay').addEventListener('click', function() {
+                const text = displayText.value.trim();
+                if (!text) {
+                    log('No text entered');
+                    return;
+                }
+                
+                log('Updating display with text: ' + text);
+                einkDisplay.classList.add('refreshing');
+                
+                setTimeout(function() {
+                    einkContent.innerText = text;
+                    einkContent.style.display = 'flex';
+                    einkContent.style.color = 'black';
+                    einkContent.style.fontSize = '14px';
+                    einkDisplay.classList.remove('refreshing');
+                    
+                    log('Display updated');
+                    log('einkContent state after update:');
+                    log('- content: ' + einkContent.innerText);
+                    log('- display: ' + window.getComputedStyle(einkContent).display);
+                    log('- color: ' + window.getComputedStyle(einkContent).color);
+                    log('- fontSize: ' + window.getComputedStyle(einkContent).fontSize);
+                }, 1000);
+            });
+            
+            document.getElementById('btnClear').addEventListener('click', function() {
+                log('Clearing display');
+                einkDisplay.classList.add('refreshing');
+                
+                setTimeout(function() {
+                    einkContent.innerText = '';
+                    einkDisplay.classList.remove('refreshing');
+                    log('Display cleared');
+                }, 1000);
+            });
+            
+            document.getElementById('btnReset').addEventListener('click', function() {
+                log('Resetting display');
+                einkDisplay.classList.add('refreshing');
+                
+                setTimeout(function() {
+                    einkContent.innerText = 'E-Ink Test';
+                    einkContent.style.display = 'flex';
+                    einkContent.style.color = 'black';
+                    einkContent.style.fontSize = '14px';
+                    einkDisplay.classList.remove('refreshing');
+                    log('Display reset');
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html> 

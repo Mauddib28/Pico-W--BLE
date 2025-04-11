@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pico W BLE E-Ink Display</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Add some critical styles inline to ensure they're available immediately */
+        .d-none {
+            display: none !important;
+        }
+        
+        /* Make sure content cards have good margins */
+        .content-card {
+            margin-bottom: 2rem;
+        }
+        
+        /* Debug outline for development */
+        .debug-outline {
+            border: 2px dashed red;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Pico W BLE E-Ink Display</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tutorial">Tutorial</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/documentation">Documentation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/test">Test Page</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1>Pico W BLE E-Ink Display Explorer</h1>
+                <p class="lead mt-4">An interactive guide to understanding Bluetooth Low Energy communication with E-Ink displays on the Raspberry Pi Pico W</p>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">BLE Service Structure</h5>
+                        <p class="card-text">Explore the GATT server architecture powering the E-Ink display.</p>
+                        <button class="btn btn-primary w-100" id="btnShowServices">View Services</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">E-Ink Display</h5>
+                        <p class="card-text">Learn how the e-paper display works and how it interacts with the Pico W.</p>
+                        <button class="btn btn-primary w-100" id="btnDisplaySimulator">Display Simulator</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Code Walkthrough</h5>
+                        <p class="card-text">Understand the Python code powering this BLE E-Ink display system.</p>
+                        <button class="btn btn-primary w-100" id="btnCodeWalkthrough">View Code</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <!-- Services Card -->
+                <div class="card content-card d-none" id="servicesCard">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">BLE Service Structure</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="servicesDiagram" class="p-3"></div>
+                    </div>
+                </div>
+
+                <!-- Display Simulator Card -->
+                <div class="card content-card d-none" id="displaySimulatorCard">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">E-Ink Display Simulator</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="display-simulator">
+                                    <div class="eink-display" id="einkDisplay">
+                                        <div class="eink-content" id="einkContent" style="display: flex !important; justify-content: center !important; align-items: center !important; color: black; font-size: 12px; text-align: center;">
+                                            Ready for BLE
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Simulation Controls</h5>
+                                <div class="form-group mb-3">
+                                    <label for="displayText">Display Text</label>
+                                    <input type="text" class="form-control" id="displayText" placeholder="Enter text to display">
+                                </div>
+                                <button class="btn btn-primary me-2" id="btnUpdateDisplay">Send to Display</button>
+                                <button class="btn btn-secondary" id="btnClearDisplay">Clear Display</button>
+                                
+                                <div class="mt-4">
+                                    <h6>Device Status: <span id="deviceStatus" class="fw-bold">Ready</span></h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Walkthrough Card -->
+                <div class="card content-card d-none" id="codeWalkthroughCard">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Code Walkthrough</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-container" id="codeContainer">
+                            <pre><code id="codeDisplay" class="python"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flow Diagram Card - Always visible -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="card" id="flowDiagramCard">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">BLE State Flow</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="flowDiagram" class="p-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p>Pico W BLE E-Ink Display Documentation - Built for learning embedded BLE development</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap & Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    
+    <!-- Highlight.js for code syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/python.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    
+    <!-- Debug Tools (Development only) -->
+    <script src="{{ url_for('static', filename='js/debug.js') }}"></script>
+    
+    <!-- Main app script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

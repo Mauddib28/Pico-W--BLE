@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fixes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Test Fixes</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">1. Test Mermaid Diagrams</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Basic Mermaid Test</h6>
+                    <div class="mermaid">
+                        graph TD
+                        A[Client] --> B[Server]
+                        B --> C[Database]
+                    </div>
+                </div>
+                
+                <div>
+                    <h6>Services Diagram Test</h6>
+                    <div id="testServicesDiagram" class="p-3"></div>
+                    <button id="testServicesBtn" class="btn btn-primary">Test Services Diagram</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">2. Test E-Ink Display</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="display-simulator">
+                            <div class="eink-display" id="testEinkDisplay">
+                                <div class="eink-content" id="testEinkContent">
+                                    Test Display
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="testDisplayText">Display Text</label>
+                            <input type="text" class="form-control" id="testDisplayText" placeholder="Enter text to display">
+                        </div>
+                        <button class="btn btn-primary me-2" id="testUpdateBtn">Update Display</button>
+                        <button class="btn btn-secondary" id="testClearBtn">Clear Display</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-center mt-4">
+            <a href="/" class="btn btn-primary">Back to Main Page</a>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Mermaid
+            mermaid.initialize({ 
+                startOnLoad: true,
+                theme: 'default'
+            });
+            
+            // Test Services Diagram
+            document.getElementById('testServicesBtn').addEventListener('click', function() {
+                const serviceData = {
+                    service: {
+                        name: "Test Service",
+                        uuid: "E1234000-A5A5-F5F5-C5C5-111122223333",
+                        characteristics: [
+                            {
+                                name: "Test Char 1",
+                                uuid: "E1234001-A5A5-F5F5-C5C5-111122223333",
+                                properties: ["Read", "Write"],
+                                description: "Test characteristic 1"
+                            },
+                            {
+                                name: "Test Char 2",
+                                uuid: "E1234002-A5A5-F5F5-C5C5-111122223333",
+                                properties: ["Notify"],
+                                description: "Test characteristic 2"
+                            }
+                        ]
+                    }
+                };
+                
+                renderTestServicesDiagram(serviceData);
+            });
+            
+            // Test E-Ink Display
+            document.getElementById('testUpdateBtn').addEventListener('click', function() {
+                testUpdateDisplay();
+            });
+            
+            document.getElementById('testClearBtn').addEventListener('click', function() {
+                testClearDisplay();
+            });
+        });
+        
+        function renderTestServicesDiagram(data) {
+            const servicesDiv = document.getElementById('testServicesDiagram');
+            if (!servicesDiv) return;
+            
+            try {
+                const service = data.service;
+                
+                let mermaidCode = `graph TD
+                classDef service fill:#e6f7ff,stroke:#1890ff,stroke-width:2px
+                classDef characteristic fill:#f6ffed,stroke:#52c41a,stroke-width:1px
+                
+                S["Service\\n${service.name}\\nUUID: ${service.uuid.slice(0, 8)}..."]:::service`;
+                
+                service.characteristics.forEach((char, index) => {
+                    const charId = `C${index}`;
+                    const properties = char.properties.join(', ');
+                    
+                    mermaidCode += `
+                    ${charId}["Char: ${char.name}\\nUUID: ${char.uuid.slice(0, 8)}...\\nProperties: ${properties}"]:::characteristic
+                    S --> ${charId}`;
+                });
+                
+                servicesDiv.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
+                
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.render('testServicesMermaidGraph', mermaidCode)
+                        .then(result => {
+                            servicesDiv.innerHTML = result.svg;
+                        })
+                        .catch(error => {
+                            servicesDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                        });
+                }
+            } catch (e) {
+                servicesDiv.innerHTML = `<div class="alert alert-danger">Error: ${e.message}</div>`;
+            }
+        }
+        
+        function testUpdateDisplay() {
+            const displayText = document.getElementById('testDisplayText');
+            const einkContent = document.getElementById('testEinkContent');
+            const einkDisplay = document.getElementById('testEinkDisplay');
+            
+            if (!displayText || !einkContent || !einkDisplay) return;
+            
+            const text = displayText.value.trim();
+            if (!text) return;
+            
+            einkDisplay.classList.add('refreshing');
+            
+            setTimeout(function() {
+                einkContent.style.display = 'flex';
+                einkContent.innerText = text;
+                einkContent.style.color = 'black';
+                einkContent.style.fontSize = '12px';
+                einkDisplay.classList.remove('refreshing');
+            }, 1000);
+        }
+        
+        function testClearDisplay() {
+            const einkContent = document.getElementById('testEinkContent');
+            const einkDisplay = document.getElementById('testEinkDisplay');
+            
+            if (!einkContent || !einkDisplay) return;
+            
+            einkDisplay.classList.add('refreshing');
+            
+            setTimeout(function() {
+                einkContent.innerText = '';
+                einkContent.style.display = 'flex';
+                einkDisplay.classList.remove('refreshing');
+            }, 1000);
+        }
+    </script>
+</body>
+</html> 

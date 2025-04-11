@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Pico W BLE E-Ink Display</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Pico W BLE E-Ink Display</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tutorial">Tutorial</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/documentation">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group" id="docNav">
+                    <a href="#overview" class="list-group-item list-group-item-action">Overview</a>
+                    <a href="#hardware" class="list-group-item list-group-item-action">Hardware Components</a>
+                    <a href="#ble-services" class="list-group-item list-group-item-action">BLE Services</a>
+                    <a href="#eink-display" class="list-group-item list-group-item-action">E-Ink Display</a>
+                    <a href="#code-structure" class="list-group-item list-group-item-action">Code Structure</a>
+                    <a href="#ble-state-machine" class="list-group-item list-group-item-action">BLE State Machine</a>
+                    <a href="#improvements" class="list-group-item list-group-item-action">Potential Improvements</a>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+                        <section id="overview" class="doc-section">
+                            <h2>Overview</h2>
+                            <p>The Pico W BLE E-Ink Display is a demonstration project that integrates Bluetooth Low Energy (BLE) communication with an E-Ink display using a Raspberry Pi Pico W microcontroller. This documentation explains the key components, functionality, and code structure.</p>
+                            <p>The project allows remote devices to connect via BLE and update the text displayed on the E-Ink screen, as well as send commands to control the display.</p>
+                        </section>
+
+                        <section id="hardware" class="doc-section">
+                            <h2>Hardware Components</h2>
+                            <ul>
+                                <li><strong>Raspberry Pi Pico W</strong> - Microcontroller with built-in WiFi and Bluetooth</li>
+                                <li><strong>Waveshare 2.13" E-Ink Display (V4)</strong> - 122x250 pixel monochrome e-paper display</li>
+                                <li><strong>Connections</strong>:
+                                    <ul>
+                                        <li>RST Pin: GPIO 12</li>
+                                        <li>DC Pin: GPIO 8</li>
+                                        <li>CS Pin: GPIO 9</li>
+                                        <li>BUSY Pin: GPIO 13</li>
+                                        <li>SPI Communication: SCK (GPIO 10), MOSI (GPIO 11)</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </section>
+
+                        <section id="ble-services" class="doc-section">
+                            <h2>BLE Services and Characteristics</h2>
+                            <p>The device implements a custom GATT server with one service and four characteristics:</p>
+
+                            <h4>E-Ink Display Service (UUID: E1234000-A5A5-F5F5-C5C5-111122223333)</h4>
+                            <p>Characteristics:</p>
+                            <ol>
+                                <li>
+                                    <strong>Read Buffer (UUID: E1234001-A5A5-F5F5-C5C5-111122223333)</strong>
+                                    <ul>
+                                        <li>Properties: Read, Notify</li>
+                                        <li>Purpose: Provides the current display state information to connected clients</li>
+                                        <li>Default value: "Empty Buffer"</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>Read Status (UUID: E1234002-A5A5-F5F5-C5C5-111122223333)</strong>
+                                    <ul>
+                                        <li>Properties: Read</li>
+                                        <li>Purpose: Indicates the current status of the device</li>
+                                        <li>Possible values: "Ready", "Connected", "Display updated", "Display cleared", etc.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>Write Display (UUID: E1234003-A5A5-F5F5-C5C5-111122223333)</strong>
+                                    <ul>
+                                        <li>Properties: Write</li>
+                                        <li>Purpose: Accepts text that will be displayed on the E-Ink display</li>
+                                        <li>Usage: Client writes a string value which will be shown on the display</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>Write Command (UUID: E1234004-A5A5-F5F5-C5C5-111122223333)</strong>
+                                    <ul>
+                                        <li>Properties: Write</li>
+                                        <li>Purpose: Accepts commands to control the display</li>
+                                        <li>Supported commands: "clear", "refresh"</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </section>
+
+                        <section id="eink-display" class="doc-section">
+                            <h2>E-Ink Display</h2>
+                            <p>The E-Ink (e-paper) display is a 2.13" Waveshare display with dimensions of 122x250 pixels. It functions as a low-power display that can maintain an image without power.</p>
+                            
+                            <h4>Display Properties:</h4>
+                            <ul>
+                                <li>Monochrome (black and white only)</li>
+                                <li>Resolution: 122×250 pixels</li>
+                                <li>2.13 inch diagonal</li>
+                                <li>No backlight (reflective)</li>
+                                <li>Uses SPI for communication</li>
+                                <li>Very low power consumption, especially when image is static</li>
+                            </ul>
+                            
+                            <h4>Display Operation:</h4>
+                            <p>The display uses a frame buffer system:</p>
+                            <ol>
+                                <li>Text/graphics are written to a buffer in memory</li>
+                                <li>The buffer is transferred to the display controller via SPI</li>
+                                <li>The display controller applies voltage to e-ink particles to update the screen</li>
+                                <li>After updating, the display can be put into sleep mode to save power</li>
+                            </ol>
+                            
+                            <h4>Limitations:</h4>
+                            <ul>
+                                <li>Slow refresh rate (typically 1-2 seconds for a full refresh)</li>
+                                <li>Only black and white (no grayscale in this implementation)</li>
+                                <li>Limited resolution</li>
+                                <li>High power usage during refresh compared to maintaining a static image</li>
+                            </ul>
+                        </section>
+
+                        <section id="code-structure" class="doc-section">
+                            <h2>Code Structure</h2>
+                            <p>The code is implemented in MicroPython and consists of several key components:</p>
+                            
+                            <h4>Main Components:</h4>
+                            <ul>
+                                <li><strong>BLEEinkDisplay Class</strong> - Manages the BLE service and communication</li>
+                                <li><strong>E-Ink Display Driver</strong> - Controls the physical e-paper display</li>
+                                <li><strong>BLE Advertising</strong> - Handles device advertising and discovery</li>
+                                <li><strong>IRQ Handler</strong> - Processes BLE events like connections and data writes</li>
+                                <li><strong>Demo Function</strong> - Initializes and runs the demonstration</li>
+                            </ul>
+                            
+                            <h4>Key Functions:</h4>
+                            <ul>
+                                <li><code>__init__</code> - Initializes BLE service and characteristics</li>
+                                <li><code>_irq</code> - Handles BLE events from central devices</li>
+                                <li><code>_update_status</code> - Updates the status characteristic</li>
+                                <li><code>_update_read_buffer</code> - Updates the read buffer with current display state</li>
+                                <li><code>_handle_command</code> - Processes commands received from clients</li>
+                                <li><code>_advertise</code> - Starts the BLE advertising process</li>
+                                <li><code>demo</code> - Main function that runs the demonstration</li>
+                            </ul>
+                        </section>
+
+                        <section id="ble-state-machine" class="doc-section">
+                            <h2>BLE State Machine</h2>
+                            <p>The device follows a standard BLE state machine flow:</p>
+                            
+                            <h4>1. Initialization</h4>
+                            <ul>
+                                <li>Initialize E-Ink display and clear the screen</li>
+                                <li>Create BLE instance and set up services</li>
+                                <li>Start advertising to become discoverable</li>
+                            </ul>
+                            
+                            <h4>2. Connection Events</h4>
+                            <ul>
+                                <li><strong>Connect</strong>: When a central device connects, the connection handle is stored and status is updated</li>
+                                <li><strong>Disconnect</strong>: When a central device disconnects, advertising is restarted</li>
+                            </ul>
+                            
+                            <h4>3. Data Exchange</h4>
+                            <ul>
+                                <li><strong>Write Events</strong>: Process data written to the Write Display or Write Command characteristics</li>
+                                <li><strong>Read Requests</strong>: Provide current data for the Read Buffer or Read Status characteristics</li>
+                            </ul>
+                            
+                            <h4>Important Timing Considerations:</h4>
+                            <ul>
+                                <li>E-Ink display updates require significant time (100ms+ delays)</li>
+                                <li>BLE operations need to wait for display operations to complete</li>
+                                <li>The code includes proper busy checking to prevent conflicts</li>
+                            </ul>
+                        </section>
+
+                        <section id="improvements" class="doc-section">
+                            <h2>Potential Improvements</h2>
+                            <p>The current implementation is a basic demonstration but could be enhanced with:</p>
+                            
+                            <ol>
+                                <li><strong>Enhanced Display Text Formatting</strong> - Add support for multi-line text and positioning</li>
+                                <li><strong>Image Support</strong> - Allow sending small images to the display</li>
+                                <li><strong>Battery Status Monitoring</strong> - Add battery level reporting via a new characteristic</li>
+                                <li><strong>Power Management</strong> - Implement deep sleep modes for improved battery life</li>
+                                <li><strong>Error Handling</strong> - Add more robust error reporting and recovery</li>
+                                <li><strong>Security</strong> - Add secure pairing and encryption for data privacy</li>
+                                <li><strong>Notification Improvements</strong> - Properly implement notifications for status changes</li>
+                                <li><strong>Extended Command Set</strong> - Add more commands like contrast adjustment and rotation</li>
+                            </ol>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p>Pico W BLE E-Ink Display Documentation - Built for learning embedded BLE development</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple scroll spy implementation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('#docNav a');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial - Pico W BLE E-Ink Display</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Pico W BLE E-Ink Display</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/tutorial">Tutorial</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/documentation">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="mb-4">Tutorial: Understanding the Pico W BLE E-Ink Display</h1>
+                        
+                        <p class="lead">This tutorial will guide you through the key concepts of the Pico W BLE E-Ink Display project, breaking down the code and explaining how it works step by step.</p>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">1</span> Understanding BLE (Bluetooth Low Energy)</h3>
+                            <p>BLE is a wireless communication technology designed for short-range, low-power applications. Unlike classic Bluetooth, BLE is optimized for transferring small amounts of data with minimal power consumption.</p>
+                            
+                            <h5>Key BLE Concepts in this Project:</h5>
+                            <ul>
+                                <li><strong>GATT (Generic Attribute Profile)</strong> - Defines how BLE devices exchange data using Services and Characteristics</li>
+                                <li><strong>Services</strong> - Collections of related functionality (our project has one E-Ink Display Service)</li>
+                                <li><strong>Characteristics</strong> - Data points within a service that can be read, written, or notified</li>
+                                <li><strong>Advertising</strong> - How BLE devices announce their presence to be discovered</li>
+                            </ul>
+                            
+                            <div class="code-block">
+# Service UUID for E-Ink Display Demo
+_EINK_UUID = bluetooth.UUID("E1234000-A5A5-F5F5-C5C5-111122223333")
+
+# Characteristics
+_READ_BUFFER = (bluetooth.UUID("E1234001-A5A5-F5F5-C5C5-111122223333"), _FLAG_READ | _FLAG_NOTIFY)
+_READ_STATUS = (bluetooth.UUID("E1234002-A5A5-F5F5-C5C5-111122223333"), _FLAG_READ)
+_WRITE_DISPLAY = (bluetooth.UUID("E1234003-A5A5-F5F5-C5C5-111122223333"), _FLAG_WRITE)
+_WRITE_COMMAND = (bluetooth.UUID("E1234004-A5A5-F5F5-C5C5-111122223333"), _FLAG_WRITE)
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">2</span> E-Ink Display Basics</h3>
+                            <p>E-Ink (electronic ink) displays are bistable, meaning they retain their image even when power is removed. This makes them ideal for low-power applications.</p>
+                            
+                            <h5>How the Display Works:</h5>
+                            <ul>
+                                <li>Black and white particles in microcapsules are moved by electric fields</li>
+                                <li>Once positioned, particles stay in place without power</li>
+                                <li>Updates require significant power but only momentarily</li>
+                                <li>Display content is managed through a frame buffer</li>
+                            </ul>
+                            
+                            <div class="code-block">
+# Display initialization example
+epd = EPD_2in13_V4_Landscape()
+epd.Clear()
+                            
+# Writing text to display
+epd.fill(0xFF)  # White background
+epd.text("WaveShare", 0, 10, 0x00)
+epd.text("ePaper-2.13_V4", 0, 30, 0x00)
+epd.display(epd.buffer)
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">3</span> The BLEEinkDisplay Class</h3>
+                            <p>The core of our project is the <code>BLEEinkDisplay</code> class, which manages the BLE service and handles communication with clients.</p>
+                            
+                            <h5>Class Initialization:</h5>
+                            <ol>
+                                <li>Activates the BLE radio</li>
+                                <li>Registers the service and characteristics</li>
+                                <li>Sets up initial values</li>
+                                <li>Begins advertising to become discoverable</li>
+                            </ol>
+                            
+                            <div class="code-block">
+def __init__(self, ble, eink_display, name="eink-display"):
+    self._ble = ble
+    self._ble.active(True)
+    self._ble.irq(self._irq)
+    self._eink = eink_display  # E-ink display object
+    
+    # Register services
+    ((self._handle_read_buffer,
+      self._handle_read_status,
+      self._handle_write_display,
+      self._handle_write_command),) = self._ble.gatts_register_services((_EINK_SERVICE,))
+    
+    # Initialize characteristics
+    self._ble.gatts_write(self._handle_read_buffer, b'Empty Buffer')
+    self._ble.gatts_write(self._handle_read_status, b'Ready')
+    
+    self._connections = set()
+    self._read_buffer = ""
+    self._display_text = ""
+    
+    # Start advertising
+    adv_data = advertising_payload(services=[_EINK_UUID])
+    resp_data = advertising_payload(name=name)
+    self._ble.gap_advertise(500000, adv_data=adv_data, resp_data=resp_data)
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">4</span> BLE Event Handling with IRQ</h3>
+                            <p>The <code>_irq</code> method is a callback function that handles various BLE events. It's triggered whenever a significant BLE event occurs.</p>
+                            
+                            <h5>Key Events Handled:</h5>
+                            <ul>
+                                <li><strong>Connect</strong> - When a client connects to the device</li>
+                                <li><strong>Disconnect</strong> - When a client disconnects</li>
+                                <li><strong>Write</strong> - When a client writes data to a characteristic</li>
+                                <li><strong>Read Request</strong> - When a client requests to read a characteristic</li>
+                            </ul>
+                            
+                            <div class="code-block">
+def _irq(self, event, data):
+    if event == _IRQ_CENTRAL_CONNECT:
+        conn_handle, _, _ = data
+        self._connections.add(conn_handle)
+        self._update_status("Connected")
+
+    elif event == _IRQ_CENTRAL_DISCONNECT:
+        conn_handle, _, _ = data
+        self._connections.remove(conn_handle)
+        self._update_status("Disconnected")
+        self._advertise()
+
+    elif event == _IRQ_GATTS_WRITE:
+        conn_handle, attr_handle = data
+        value = self._ble.gatts_read(attr_handle)
+        
+        if attr_handle == self._handle_write_display:
+            self._display_text = value.decode()
+            self._eink.display_text(self._display_text)
+            self._update_status("Display updated")
+            
+        elif attr_handle == self._handle_write_command:
+            self._handle_command(value.decode())
+
+    elif event == _IRQ_GATTS_READ_REQUEST:
+        conn_handle, attr_handle = data
+        if attr_handle == self._handle_read_buffer:
+            self._update_read_buffer()
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">5</span> Handling Display Commands</h3>
+                            <p>The <code>_handle_command</code> method processes commands sent by clients to control the display.</p>
+                            
+                            <h5>Currently Supported Commands:</h5>
+                            <ul>
+                                <li><strong>clear</strong> - Clears the display to white</li>
+                                <li><strong>refresh</strong> - Refreshes the display with current content</li>
+                            </ul>
+                            
+                            <div class="code-block">
+def _handle_command(self, cmd):
+    """Handle display commands"""
+    if cmd == "clear":
+        self._eink.clear()
+        self._display_text = ""
+        self._update_status("Display cleared")
+    elif cmd == "refresh":
+        self._eink.display_frame()
+        self._update_status("Display refreshed")
+    else:
+        self._update_status(f"Unknown command: {cmd}")
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">6</span> Main Demo Function</h3>
+                            <p>The <code>demo</code> function initializes everything and runs the main application loop.</p>
+                            
+                            <h5>Key Steps:</h5>
+                            <ol>
+                                <li>Initialize the E-Ink display</li>
+                                <li>Draw a test pattern to verify display functionality</li>
+                                <li>Create a BLEEinkDisplay instance</li>
+                                <li>Set up the onboard LED for status indication</li>
+                                <li>Enter main loop to handle connections and toggle the LED</li>
+                            </ol>
+                            
+                            <div class="code-block">
+def demo():
+    print("[*] Starting E-ink Display Demo")
+    
+    # Initialize display
+    epd = EPD_2in13_V4_Landscape()
+    epd.Clear()
+    
+    # Test pattern
+    epd.fill(0xFF)  # White background
+    epd.text("WaveShare", 0, 10, 0x00)
+    epd.text("ePaper-2.13_V4", 0, 30, 0x00)
+    epd.text("Raspberry Pico WH", 0, 50, 0x00)
+    epd.text("Bluetooth Low Energy", 0, 70, 0x00)
+    epd.text("   GATT Server", 0, 80, 0x00)
+    epd.display(epd.buffer)
+    epd.delay_ms(2000)
+
+    # Sleep the Display
+    epd.init()
+    epd.Clear()
+    epd.delay_ms(2000)
+    epd.sleep()
+    
+    # Start BLE service
+    ble = bluetooth.BLE()
+    ble_display = BLEEinkDisplay(ble, epd)
+    
+    # Onboard LED for status
+    led = Pin("LED", Pin.OUT)
+    
+    # Main loop
+    try:
+        while True:
+            if ble_display._connections:
+                led.toggle()  # Blink when connected
+            else:
+                led.off()
+            time.sleep_ms(500)
+            
+    except KeyboardInterrupt:
+        print("\n[-] Stopping demo")
+        epd.clear()
+        ble.active(False)
+                            </div>
+                        </div>
+                        
+                        <div class="step-container">
+                            <h3><span class="step-number">7</span> Next Steps and Improvements</h3>
+                            <p>The current implementation is functional but basic. Here are some ways you could enhance it:</p>
+                            
+                            <h5>Potential Enhancements:</h5>
+                            <ul>
+                                <li><strong>Text Formatting</strong> - Add support for font sizes, positioning, and multi-line text</li>
+                                <li><strong>Image Support</strong> - Allow displaying simple monochrome images</li>
+                                <li><strong>Battery Monitoring</strong> - Add a characteristic to report battery level</li>
+                                <li><strong>Low Power Mode</strong> - Implement deeper sleep modes for better power efficiency</li>
+                                <li><strong>Security</strong> - Add pairing and encryption to protect communication</li>
+                                <li><strong>Extended Commands</strong> - Add more display control options</li>
+                            </ul>
+                            
+                            <p>Implementing these enhancements would involve extending the BLEEinkDisplay class with new characteristics and methods to handle the additional functionality.</p>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <h5>Ready to Try It Yourself?</h5>
+                            <p>To interact with this device from your smartphone:</p>
+                            <ol>
+                                <li>Use a BLE scanner app (like "nRF Connect" or "LightBlue")</li>
+                                <li>Look for the device named "eink-display"</li>
+                                <li>Connect to it and explore the services and characteristics</li>
+                                <li>Write text to the "Write Display" characteristic</li>
+                                <li>Send "clear" to the "Write Command" characteristic to clear the display</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p>Pico W BLE E-Ink Display Documentation - Built for learning embedded BLE development</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
