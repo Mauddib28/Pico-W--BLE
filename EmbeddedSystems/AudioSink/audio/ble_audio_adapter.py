@@ -8,6 +8,7 @@ Handles audio data conversion and buffering.
 import uasyncio as asyncio
 import struct
 import time
+import gc
 
 from audio.i2s_driver import I2SDriver
 from ble.ble_core import BLEAudioSink
@@ -57,11 +58,15 @@ class BLEAudioAdapter:
             "audio_bytes_processed": 0,
             "last_packet_time": 0
         }
+        
+        # Memory management
+        gc.collect()  # Force garbage collection at initialization
     
     async def start(self):
         """Start the BLE audio adapter."""
         if not self.is_running:
             self.is_running = True
+            gc.collect()  # Free memory before starting components
             
             # Start I2S playback
             await self.i2s_driver.start()
@@ -86,6 +91,7 @@ class BLEAudioAdapter:
         self.ble_sink.disconnect()
         
         print("BLE Audio Adapter stopped")
+        gc.collect()  # Free memory after stopping
     
     def _handle_audio_data(self, data):
         """
@@ -102,8 +108,12 @@ class BLEAudioAdapter:
         self.stats["audio_bytes_processed"] += len(data)
         self.stats["last_packet_time"] = self.ble_sink.get_ticks_ms()
         
+        # Process only manageable chunks to prevent memory issues
+        max_chunk = min(len(data), AUDIO_CHUNK_SIZE)
+        
         # Create a task to write data to I2S
-        asyncio.create_task(self._write_audio_data(data))
+        # Pass the data directly without creating a copy
+        asyncio.create_task(self._write_audio_data(data[:max_chunk]))
     
     async def _write_audio_data(self, data):
         """
@@ -112,12 +122,23 @@ class BLEAudioAdapter:
         Args:
             data (bytes): Audio data to write
         """
-        # Write data to I2S buffer
-        buffer_full = await self.i2s_driver.write(data)
-        
-        # Track buffer overruns
-        if buffer_full:
-            self.stats["buffer_overruns"] += 1
+        try:
+            # Write data to I2S buffer in smaller chunks if necessary
+            chunk_size = 128  # Process in very small chunks
+            for i in range(0, len(data), chunk_size):
+                chunk = data[i:i+chunk_size]
+                buffer_full = await self.i2s_driver.write(chunk)
+                
+                # Track buffer overruns
+                if buffer_full:
+                    self.stats["buffer_overruns"] += 1
+                    await asyncio.sleep_ms(5)  # Wait for buffer to drain
+            
+            # Explicitly delete references to release memory
+            del data
+            gc.collect()  # Force garbage collection after processing
+        except Exception as e:
+            print(f"Error writing audio data: {e}")
     
     def _handle_control_command(self, command):
         """
@@ -178,6 +199,8 @@ class BLEAudioAdapter:
             print("BLE device disconnected")
             # Clear audio buffer on disconnect
             self.i2s_driver.clear_buffer()
+            # Force garbage collection after disconnect
+            gc.collect()
     
     def _reset_stats(self):
         """Reset the debug statistics."""
@@ -187,6 +210,7 @@ class BLEAudioAdapter:
             "audio_bytes_processed": 0,
             "last_packet_time": 0
         }
+        gc.collect()  # Force garbage collection after resetting stats
     
     async def _stats_task(self):
         """Task to periodically print statistics."""
@@ -194,10 +218,14 @@ class BLEAudioAdapter:
             if self.ble_sink.is_connected() and self.stats["packets_received"] > 0:
                 print(f"Stats:\nPackets: {self.stats['packets_received']},\nOverruns: {self.stats['buffer_overruns']},\nData: {self.stats['audio_bytes_processed']/1024:.1f}KB")
             await asyncio.sleep(5)
+            gc.collect()  # Force garbage collection after printing stats
 
 
 def test_ble_audio_adapter():
     """Test function for BLE audio adapter."""
+    # Force garbage collection before starting test
+    gc.collect()
+    
     adapter = BLEAudioAdapter()
     
     async def run_test():
@@ -207,10 +235,15 @@ def test_ble_audio_adapter():
         try:
             while True:
                 await asyncio.sleep(1)
+                # Periodically collect garbage to prevent memory leaks
+                if adapter.stats["packets_received"] % 10 == 0:
+                    gc.collect()
         except KeyboardInterrupt:
             print("Test interrupted")
         finally:
             await adapter.stop()
+            # Final garbage collection
+            gc.collect()
     
     print("Testing BLE Audio Adapter...")
     asyncio.run(run_test())

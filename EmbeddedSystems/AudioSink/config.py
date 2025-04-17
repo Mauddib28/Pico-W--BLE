@@ -22,15 +22,15 @@ STATUS_LED_PIN = const(25)  # Onboard LED pin for Pico W
 UDA_MUTE_PIN = const(22)    # Mute pin on UDA1334A (active low)
 
 # ========== Audio Configuration ==========
-AUDIO_SAMPLE_RATE = const(44100)    # 44.1 kHz sample rate
+AUDIO_SAMPLE_RATE = const(22050)    # Reduced from 44.1 kHz to 22.05 kHz
 AUDIO_BIT_DEPTH = const(16)         # 16-bit audio
 AUDIO_CHANNELS = const(2)           # Stereo
-AUDIO_BUFFER_SIZE = const(8192)     # Audio buffer size in bytes
-AUDIO_CHUNK_SIZE = const(512)       # Chunk size for audio processing
+AUDIO_BUFFER_SIZE = const(2048)     # Reduced from 8192 to 2048 bytes
+AUDIO_CHUNK_SIZE = const(256)       # Reduced from 512 to 256 bytes
 
 # ========== BLE Configuration ==========
-BLE_AUDIO_PACKET_SIZE = const(512)  # Size of BLE audio packets
-BLE_MTU_SIZE = const(512)           # Maximum transmission unit size
+BLE_AUDIO_PACKET_SIZE = const(240)  # Reduced from 512 to 240 bytes
+BLE_MTU_SIZE = const(240)           # Reduced from 512 to 240 bytes
 
 # Advertising parameters
 ADV_INTERVAL_MS = const(250)        # Advertising interval in milliseconds
