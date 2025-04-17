@@ -1,0 +1,39 @@
+# Bluetooth Audio Speaker/Headset PRD
+
+## Project Overview
+Create a Bluetooth Audio Speaker/Headset Device using BLE protocol on a Pico WH platform.
+
+## Hardware Components
+- Arduino Pico WH device
+- Adafruit I2S Stereo Decoder - UDA1334A Breakout board
+- Integrated speaker/headset via the I2S Stereo Decoder
+
+## Software Requirements
+
+### Bluetooth Implementation
+- Implement Bluetooth Low Energy (BLE) protocol
+- Create L2CAP channel for audio data transmission
+- Handle potential audio data loss and throughput limitations
+
+### BLE GATT Server Requirements
+- Implement media control functionality (play, pause, resume, stop)
+- Advertise device as "BLE Audio Sink" with alias "BLE I2S"
+- Provide volume control functionality
+- Include status message capabilities for connected BLE central devices
+
+### Serial Interface
+- Implement command-line based user interface via serial connection
+- Allow same control functions as BLE GATT server
+- Provide system information checking capabilities (name, alias, status)
+
+### Audio Processing
+- Implement I2C protocol for audio data transfer to I2S Stereo Decoder
+- Handle audio data processing within L2CAP channel constraints
+
+## Documentation Requirements
+- Document wiring details in "README.wiring" file and in-code comments
+- Include thorough documentation for variables, functions, and code blocks
+- Document inputs, outputs, and functionality of code components
+
+## Directory Structure
+- All code and documentation must be in EmbeddedSystems/AudioSink/ 

@@ -1,1 +1,59 @@
 Ensure that the libraries used are representative of the expected embedded hardware being used (i.e. RealTek BW-16, Pico-WH)
+
+-=[ Guidelines and Rules for General Coding Development and Research ]=-
+
+-------------- Must Follow Rules for Research and Development --------------
+
+Whenever provided any source code or acceptable reference material, the first thing to do is read through the existing material, dissect its funcitonality (including determining how multiple or modular components interact along with how that functionalty perpetuates throughout the code), determine any and all gaps or pitfalls that exist within the supplementary material, ensure that a total understanding of the reference materials is acheived, and ONLY ONCE the aforementioned points are met then begin to assist in the requested generation of code.
+
+BEFORE PERFORMING ANY EDITS, MODIFICATIONS, OR ALERATIONS TO EXISTING CODE YOU MUST REVIEW ALL CODE, FUNCTIONALITY, AND ABSTRACTIONS OF OPERATIONS TO ENSURE THAT EVERY SINGLE EDIT BEING MADE DOES NOT CAUSE EXISTING FUCNTIONALITY TO BECOME NON-OPERATIONAL OR OTHERWISE BREAK EXISTING FUCNTIONALITY.  IF the effort to be made cannot be done without affecting existing functionality, then you MUST check with me FIRST that I find the edits acceptable prior to performing ANY further
+
+DO NOT make unnecessary changes to working code, especially if known working functionality would be changed by edits
+- The point is to be concise by reviewing all functional code, its relation to the working operation of the script/code, and ensuring that changes made will not end up breaking other functionality or operations that are already confirmed to function.
+- In the cases where functional changes are made, you MUST verify and validate that any potentially affected capabilities are not negatively effected or broken
+- If leveraging existing source code or larger system capabilities, DO NOT RE-CREATE alrteady existing code or functionality! Simply incorporate the known working functionality, even if indepth research, testing, and verification/validation is required to arrive at an acceptable solution.
+
+DO NOT EVER create mock or stub funcitons when being asked to help produce code with specific functionality or operational capabilities.  If ANY SOURCE CODE or KNOWN GOOD EXAMPLE(S) are provided, then these supplementary materials MUST be used as a guide and reference for how the code is expected to work, what structures and data types must be used for interaction between componets/elements of produced solutions, and the ideal methods by which to debug and troubleshoot any potential issues/errors/failures/warnings produced during code development and operation.  THE ONLY ACCEPTABLE SCENARIO FOR THE USE OF A MOCK/STUB FUNCTION IS IF THE USER SPECIFICALLY AND DIRECTLY REQUESTS THE EXACT FUNCTION IN QUESTION TO BE DEVELOPED AS THE INTENDED OPERATION OF THE GENERATED CODE.
+- IF NO KNOWN ACCEPTABLE EXAMPLE CODE/FUNCTION IS PROVIDED then the your task is to research, explore, and attempt to find any existing publically accessible information or documentation that relates to the type of reference/guide material required to supplement the missing knowledge.  You MUST then perform two things when leveraging the discovered information: (1) cite the source of the discovered information to transparently inform the user of where the information came form and how it is being used, and (2) utilize the established supplementary reference material as a guide for continuing with the development of requests code functionality and operation.
+YOU MUST REMOVE ALL MOCK/STUB/DUMMY_MODE CODE AND REPLACE IT WITH FULLY FUNCTIONAL CODE THAT MEETS THE REQUIREMENTS OF TASK 1 AND ITS ASSOCIATED SUBTASKS.  DO NOT CREATE ANY NEW "DUMMY_MODE" OR OTHER DUMMY OR MOCK OR STUB OR NON-FUNCTIONAL BEHAVIOR.  ALL CURRENT INSTANCES OF DUMMY CODE MUST BE REMOVED AND REPLACE WITH FULLY FUNCTIONAL CODE THAT MEETS THE NEEDS INTENDED BY THE REMOVED DUMMY CODE/FUNCTION/METHOD.
+
+NEVER GENERATE UNNCESSARY SCRIPTS OR CODE THAT CAN BE FUNCTIONALLY IMPLEMENTED WITH EXISTING OPERATING SYSTEM COMMANDS OR FUNCTIONALITY AND ESPECIALLY IF OTHER SECTIONS OF EXISTING CODE CAN BE MODIFIED TO INCLUDE THE DESIRED OPERATION.  It is a waste of time to replicate existing capabilities of the underlying OS whenever: troubelshooting errors/issues in the development of desired code, examining variations of input/output during the operation of scripts or binaries, whenever verifying and validating intended capabilities of the generated code (e.g. check-list of script functions)
+- ONLY produce a script specific to authenticate functionality when the user SPECIFICALLY REQUESTS the code; e.g. production of unit tests.
+- Avoid all redudant work and adding unnecessary abstraction to testing/validation/verification processes.
+- If adding functionality to a script (i.e. adding command line functionality to a normally user-interactive script) simple add the new functionality into the existing structure.  DO NOT make a new script to repeat the functionality that already exists for another script.
+
+----------- Coding Practices and Guidlines ----------
+
+For any and all coding + troubleshooting you MUST adhere to the following rules:
+- When testing code that depends on commands are being passed via a user interface, beware getting stuck in a loop whenever performing troubleshooting
+- In order to prevent terminals getting stuck during debugging either create a direct command arugments that can be sent to the compiled code binary (e.g. with a timeout that would prevent getting stuck perminately; note: this capabilitiy should be indicated as an additionl input to the C binary to ensure that the existing runtime functionality is preserved).
+- Always provide a detailed report of: (1) determining the source of the troubelshooted concern, (2) description of the problem along with the source of the error, (3) how you addressed any issues to resolve the original concern, and (4) how the solution produced mitigates the issue.  Ensure that proper logging and debugging are in place to allow for effective and efficient tracking of issues, their source, and mitigations.
+- Whenever troubleshooting, continue to test for conclusive verification and validation that the original concern raised is addressed in totallity (e.g. the error should not be generated following the same steps).  In these scenarios, thoroughly review any supplmentary material, source code, documentation, and other forms of information that provide insight to the structures, mechanisms, and functionality relevant to issue/error at hand.
+- If necessary make use of the following tools to aid in the debugging of C code: gdb, valgrind
+
+
+-=[ Guidelines and Rules for Python Code Development and Research ]=-
+
+-------------- Coding Rules for Development -----------------
+
+Python coding should be done for fast prototyping of ideas and has a method for sanity testing any existing code or tools.
+- The libraries to be used for any Bluetooth-related python scripts are: dbus, GLib
+- All python coding must be maintained to 500 or less lines of code and be modularized for an ease in testing, development, and production changes
+- Generated frameworks that leverage the Python scripts should ensure two methods of interaction: (1) through user interaction and (2) command line interaction.  Having both ensures that future testing can be performed both by myself or via AI testing.
+
+Ensure that all code that is created will gracefuly failover, especially when method calls or other functionality fails
+- In the case of main operational functionality, if the code fails then the script should NOT continue to generate output indicating success in performing tasks.  The unncessary output can confuse the user (e.g. false positive behavior).
+- Review functionality of scripts, methods, functions, and variables to ensure that all intended capabilities are present and that NO MOCK OR STUB FUNCTIONS/CODE IS USED, ESPECIALLY WHEN AUTHENTICATING OPERATIONAL VALIDITY of the generated script.
+- Ensure that any potential errors or issues are thoroughly and conclusively analyzed, tested, troubelshooted, and verified as solved before attempting to present the user with ANY SORT OF COMPLETED SOLUTION.
+
+--------------- Additional Debugging of the Python Code --------------
+
+When debugging or troubleshooting work, ALWAYS:
+- Generate and teardown any resources used to verification and validation testing
+- Have logs/output that can be read and assessed in order to determine the success or failure of functions, methods, or entire framework
+- Even when sure that you have an effective solution, implement it and test it thoroughly to confirm that the intended functionality is met, maintained, and accurate
+
+
+===== PRD Generation =====
+
+Please use the task-master parse-prd command to generate tasks from my PRD. The PRD is located at scripts/prd.txt. 

@@ -1,0 +1,102 @@
+# I2S Audio Interface Wiring Guide
+
+## Hardware Components
+
+1. **Raspberry Pi Pico WH**
+   - Microcontroller with WiFi/Bluetooth capabilities
+   - 3.3V logic levels
+
+2. **Adafruit I2S Stereo Decoder Breakout - UDA1334A**
+   - 16-bit DAC with integrated headphone amplifier
+   - 3.3V compatible
+   - Supports sample rates from 8kHz to 96kHz
+
+## Wiring Connection Diagram
+
+```
+Raspberry Pi Pico WH          UDA1334A I2S Decoder
+------------------          ----------------------
+GPIO 0 (I2S BCLK)  ------> BCLK (Bit Clock)
+GPIO 1 (I2S LRCLK) ------> LRCLK/WS (Word Select)
+GPIO 2 (I2S DATA)  ------> DIN (Data In)
+GPIO 3 (I2S MUTE)  ------> MUTE (Optional)
+3.3V               ------> VIN (Power)
+GND                ------> GND (Ground)
+```
+
+## Detailed Connection Specifications
+
+### Essential Connections
+
+| Pico WH Pin | I2S Decoder Pin | Function                       |
+|-------------|-----------------|--------------------------------|
+| GPIO 0      | BCLK            | Bit Clock for I2S synchronization |
+| GPIO 1      | LRCLK/WS        | Left/Right Channel Clock       |
+| GPIO 2      | DIN             | Serial Data Input              |
+| 3.3V        | VIN             | Power Supply (+3.3V)           |
+| GND         | GND             | Ground                         |
+
+### Optional Connections
+
+| Pico WH Pin | I2S Decoder Pin | Function                       |
+|-------------|-----------------|--------------------------------|
+| GPIO 3      | MUTE            | Mute control (active low)      |
+
+## Signal Descriptions
+
+1. **BCLK (Bit Clock)**
+   - Provides the timing for individual bits of I2S data
+   - Frequency = Sample Rate × Bits Per Channel × Number of Channels
+   - For 44.1kHz stereo 16-bit: BCLK = 44100 × 16 × 2 = 1.4112 MHz
+
+2. **LRCLK (Left/Right Clock)**
+   - Also known as Word Select (WS)
+   - Indicates which channel (left or right) is being transmitted
+   - Frequency = Sample Rate (typically 44.1kHz for CD-quality audio)
+
+3. **DIN (Data In)**
+   - Serial data line carrying the audio data
+   - Data is transmitted MSB first
+   - Left channel when LRCLK is low, right channel when LRCLK is high
+
+4. **MUTE**
+   - Optional control signal
+   - Active low (connect to GND to mute, leave floating or connect to 3.3V for normal operation)
+   - Can be connected to GPIO for software control
+
+## Testing the Connections
+
+1. Use the provided `i2s_test.py` script to verify connections:
+   ```python
+   import i2s_test
+   i2s_test.run_full_test()
+   ```
+
+2. The test script will:
+   - Verify each I2S pin is properly connected
+   - Generate a test tone (440Hz sine wave)
+   - Provide visual feedback through the Pico's onboard LED
+
+## Troubleshooting
+
+1. **No Sound**
+   - Verify all connections using a multimeter
+   - Ensure the MUTE pin is not active (not connected to GND)
+   - Check that the UDA1334A is receiving power (3.3V)
+   - Verify that the proper I2S pins are defined in `i2s_config.py`
+
+2. **Distorted Sound**
+   - Ensure BCLK frequency matches the sample rate specification
+   - Verify that GND is properly connected between Pico and UDA1334A
+   - Try lowering the volume in software
+
+3. **Intermittent Sound**
+   - Check for loose connections
+   - Ensure wire lengths are kept short (<10cm if possible)
+   - Try lowering the sample rate in software
+
+## Additional Notes
+
+- The UDA1334A has a built-in headphone amplifier suitable for driving headphones or small speakers directly
+- For best results, use shielded wire for the data connections to reduce interference
+- The UDA1334A also supports an I2C interface for additional control, but this is not used in our implementation 
